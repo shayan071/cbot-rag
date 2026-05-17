@@ -1,9 +1,9 @@
-# import (python built-ins)
+
 import os
 import tempfile
 import streamlit as st
 from dotenv import load_dotenv
-## imports langchain
+
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.document_loaders import PyPDFLoader
@@ -12,27 +12,26 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 
-# setup : env + streamlit page
+
 
 load_dotenv() 
-st.set_page_config(page_title=" 📝 RAG Q&A ",layout="wide")
-st.title("📝 RAG Q&A with Multiple PDFs + Chat History")
+st.set_page_config(page_title="RAG Q&A ",layout="wide")
+st.title("RAG Q&A with Multiple PDFs + Chat History")
 
-# Sidbar config: Groq API Key input
+
 
 with st.sidebar:
-    st.header("⚙️ Config")
+    st.header("Config")
     api_key_input = st.text_input("Groq API Key", type="password")
     st.caption("Upload PDFs -> Ask questions -> Get Answers")
 
-# Accept keey from input or .env
+
 api_key = api_key_input or os.getenv("GROQ_API_KEY")
 
 if not api_key:
     st.warning(" Please enter your Groq API Key (or set GROQ_API_KEY in .env) ")
     st.stop()
 
-# embeddings ad llm initialization
 
 embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2",
@@ -47,7 +46,7 @@ llm = ChatGroq(
 # upload PDFs (multiple)
 
 uploaded_files = st.file_uploader(
-    " 📚 Upload PDF files",
+    "Upload PDF files",
     type = "pdf",
     accept_multiple_files=True
 )
@@ -73,7 +72,7 @@ for pdf in uploaded_files:
 
     all_docs.extend(docs)
 
-st.success(f"✅ Loaded {len(all_docs)} pages from {len(uploaded_files)} PDFs")
+st.success(f"Loaded {len(all_docs)} pages from {len(uploaded_files)} PDFs")
 
 # Clean up temp files
 for p in tmp_paths:
@@ -105,7 +104,7 @@ retriever = vectorstore.as_retriever(
     search_kwargs={"k": 5, "fetch_k": 20}
 )
 
-st.sidebar.write(f"🔍 Indexed {len(splits)} chunks for retrieval")
+st.sidebar.write(f"Indexed {len(splits)} chunks for retrieval")
 
 # ── Helper: format docs for stuffing ───────────────────────────────────────────
 def _join_docs(docs, max_chars=7000):
@@ -149,8 +148,8 @@ def get_history(session_id: str):
     return st.session_state.chathistory[session_id]
 
 # chat ui
-session_id = st.text_input(" 🆔 Session ID ", value="default_session")
-user_q = st.chat_input("💬 Ask a question...")
+session_id = st.text_input("Session ID ", value="default_session")
+user_q = st.chat_input("Ask a question...")
 
 
 # ── Session state for chat history here
@@ -194,12 +193,12 @@ if user_q:
     history.add_ai_message(answer)
 
     # Debug panels
-    with st.expander("🧪 Debug: Rewritten Query & Retrieval"):
+    with st.expander("Debug: Rewritten Query & Retrieval"):
         st.write("**Rewritten (standalone) query:**")
         st.code(standalone_q or "(empty)", language="text")
         st.write(f"**Retrieved {len(docs)} chunk(s).**")
 
-    with st.expander("📑 Retrieved Chunks"):
+    with st.expander("Retrieved Chunks"):
         for i, doc in enumerate(docs, 1):
             st.markdown(f"**{i}. {doc.metadata.get('source_file','Unknown')} (p{doc.metadata.get('page','?')})**")
             st.write(doc.page_content[:500] + ("..." if len(doc.page_content) > 500 else ""))
